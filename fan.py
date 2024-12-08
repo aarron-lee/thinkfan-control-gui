@@ -4,7 +4,20 @@ import subprocess
 from time import sleep
 from threading import Thread
 
-# cat /proc/acpi/ibm/fan
+
+'''
+create a file called /etc/modprobe.d/thinkpad.conf that contains
+
+options thinkpad_acpi fan_control=1
+
+and to then reload the module
+
+sudo modprobe -r thinkpad_acpi && sudo modprobe thinkpad_acpi
+
+to check if speed level changed, you can check
+
+cat /proc/acpi/ibm/fan
+'''
 
 def get_speed_level(avg_core_temp):
     if avg_core_temp <= 40.0:
