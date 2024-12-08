@@ -1,24 +1,51 @@
 #!/usr/bin/python3
-import tkinter as tk
+import re
 import subprocess
 from time import sleep
 from threading import Thread
 
+# cat /proc/acpi/ibm/fan
+
+def get_speed_level(avg_core_temp):
+    if avg_core_temp <= 40.0:
+        # fan off
+        return 0
+    elif avg_core_temp <= 50.0:
+        return 1
+    elif avg_core_temp <= 70.0:
+        return 3
+    elif avg_core_temp <= 80.0:
+        return 5
+    elif avg_core_temp <= 90.0:
+        # max is 7
+        return 7
+
+    return 7
 
 def get_info():
     info_lines = subprocess.check_output("sensors").decode("utf-8").split("\n")
     result = []
+    temps = []
     count = 0
     for i in info_lines:
         if "Core" in i:
             result.append("Core %d: " % count + i.split(":")[-1].split("(")[0].strip())
+            temps.append(i.split(":")[-1].split("(")[0].strip())
             count += 1
 
         if "fan" in i:
             result.append("Fan : " + i.split(":")[-1].strip())
 
-    return result
+    core_temps = [float(re.findall(r"[-+]?\d*\.\d+|\d+", item)[0]) for item in temps]
+    avg_temp = sum(core_temps) / len(temps)
 
+    output = {
+        "avg_core_temp": avg_temp,
+        "core_temps": core_temps,
+        "info": result
+    }
+
+    return output
 
 def set_speed(speed=None):
     """
@@ -32,42 +59,23 @@ def set_speed(speed=None):
     ).decode()
 
 
-class MainApplication(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
-        tk.Frame.__init__(self, parent, *args, **kwargs)
-        self.parent = parent
-        self.parent.minsize(width=100, height=100)
-
-        main_label = tk.Label(parent, text="")
-        main_label.grid(row=0, column=0)
-
-        row1 = tk.Frame()
-        row1.grid()
-        for i in range(8):
-            tk.Button(row1, text=str(i), command=lambda x=i: set_speed(x)).grid(
-                row=0, column=i + 1
-            )
-
-        row2 = tk.Frame()
-        row2.grid()
-
-        tk.Button(row2, text="Auto", command=lambda: set_speed("auto")).grid(
-            row=0, column=0
-        )
-        tk.Button(row2, text="Full", command=lambda: set_speed("full-speed")).grid(
-            row=0, column=1
-        )
-
-        def display_loop():
-            while True:
-                sleep(0.5)
-                main_label["text"] = "\n".join(get_info())
-
-        Thread(target=display_loop).start()
-
-
 if __name__ == "__main__":
-    root = tk.Tk()
-    root.title("Thinkfan Control")
-    MainApplication(root).grid()
-    root.mainloop()
+    def display_loop():
+        previous_speed = -1
+        while True:
+            sleep(2)
+            fan_info = get_info()
+            avg_core_temp = fan_info.get("avg_core_temp")
+
+            speed = get_speed_level(avg_core_temp)
+
+            if previous_speed != speed:
+                set_speed(speed)
+                print(f"Average Core Temp: {avg_core_temp} speed level: {speed}")
+                print(f"speed changed from {previous_speed} to {speed}")
+                previous_speed = speed
+            #else:
+            #    print(f"Average Core Temp: {avg_core_temp} speed level: {speed}")
+            #    print(f"No speed change")
+
+    Thread(target=display_loop).start()
