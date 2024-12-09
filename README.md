@@ -1,3 +1,5 @@
+### modified to use as headless systemd service on bazzite
+
 # Thinkpad Fan Control GUI
 
 ![Screenshot](https://i.imgur.com/UXII1Mg.png)
