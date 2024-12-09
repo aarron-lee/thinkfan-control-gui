@@ -1,9 +1,13 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
+
 import re
 import subprocess
 from time import sleep
 from threading import Thread
+import logging
 
+logging.basicConfig(format='[%(levelname)s] %(asctime)s %(message)s', level=logging.INFO)
+logger = logging.getLogger()
 
 '''
 create a file called /etc/modprobe.d/thinkpad.conf that contains
@@ -73,25 +77,27 @@ def set_speed(speed=None):
     """
     print("set level to %r" % speed)
     return subprocess.check_output(
-        'echo level {0} | sudo tee "/proc/acpi/ibm/fan"'.format(speed),
+        'echo level {0} | tee "/proc/acpi/ibm/fan"'.format(speed),
         shell=True
     ).decode()
 
 
 if __name__ == "__main__":
+    logger.info('thinkfan_speed: service starting')
     def display_loop():
         previous_speed = -1
         while True:
             sleep(2)
             fan_info = get_info()
             avg_core_temp = fan_info.get("avg_core_temp")
+            core_temps = fan_info.get("core_temps")
 
             speed = get_speed_level(avg_core_temp)
 
             if previous_speed != speed:
                 set_speed(speed)
-                print(f"Average Core Temp: {avg_core_temp} speed level: {speed}")
-                print(f"speed changed from {previous_speed} to {speed}")
+                logger.info(f"thinkfan_speed: Average Core Temp: {avg_core_temp} All Core Temps: {core_temps}")
+                logger.info(f"thinkfan_speed: speed changed from {previous_speed} to {speed}")
                 previous_speed = speed
             #else:
             #    print(f"Average Core Temp: {avg_core_temp} speed level: {speed}")
