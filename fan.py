@@ -14,6 +14,10 @@ and to then reload the module
 
 sudo modprobe -r thinkpad_acpi && sudo modprobe thinkpad_acpi
 
+alternatively, you can add a kernel arg
+
+thinkpad_acpi.fan_control=1
+
 to check if speed level changed, you can check
 
 cat /proc/acpi/ibm/fan
