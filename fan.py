@@ -90,14 +90,15 @@ if __name__ == "__main__":
             sleep(2)
             fan_info = get_info()
             avg_core_temp = fan_info.get("avg_core_temp")
-            core_temps = fan_info.get("core_temps")
+            info = fan_info.get("info")
 
             speed = get_speed_level(avg_core_temp)
 
             if previous_speed != speed:
                 set_speed(speed)
-                logger.info(f"thinkfan_speed: Average Core Temp: {avg_core_temp} All Core Temps: {core_temps}")
-                logger.info(f"thinkfan_speed: speed changed from {previous_speed} to {speed}")
+                logger.info(f"{info}")
+                logger.info(f"thinkfan_speed: Average Core Temp: {avg_core_temp}")
+                logger.info(f"thinkfan_speed: Fan speed changed from {previous_speed} to {speed}")
                 previous_speed = speed
             #else:
             #    print(f"Average Core Temp: {avg_core_temp} speed level: {speed}")
