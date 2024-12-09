@@ -25,6 +25,8 @@ def get_speed_level(avg_core_temp):
         return 0
     elif avg_core_temp <= 50.0:
         return 1
+    elif avg_core_temp <= 65.0:
+        return 2
     elif avg_core_temp <= 70.0:
         return 3
     elif avg_core_temp <= 80.0:
